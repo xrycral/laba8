@@ -15,7 +15,24 @@ class AuthProxy {
       },
     };
 
-    return this._client.request(modifiedReq);
+    const response = await this._client.request(modifiedReq);
+
+    if (response.status === 401 && this._strategy.refresh) {
+      await this._strategy.refresh();
+
+      const retryHeaders = this._strategy.getHeaders();
+      const retryReq = {
+        ...req,
+        headers: {
+          ...req.headers,
+          ...retryHeaders,
+        },
+      };
+
+      return this._client.request(retryReq);
+    }
+
+    return response;
   }
 }
 
@@ -37,6 +54,11 @@ class JwtStrategy {
   getHeaders() {
     return { Authorization: `Bearer ${this._token}` };
   }
+
+  async refresh() {
+    console.log('[JwtStrategy] refreshing token...');
+    this._token = 'new_refreshed_jwt_token';
+  }
 }
 
 class OAuthStrategy {
@@ -46,6 +68,11 @@ class OAuthStrategy {
 
   getHeaders() {
     return { Authorization: `OAuth ${this._token}` };
+  }
+
+  async refresh() {
+    console.log('[OAuthStrategy] refreshing OAuth token...');
+    this._token = 'new_refreshed_oauth_token';
   }
 }
 
