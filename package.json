@@ -1,0 +1,17 @@
+{
+  "name": "lab8",
+  "version": "1.0.0",
+  "description": "Authentication Proxy for an API Service",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "format": "prettier --write ."
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "prettier": "^3.0.0"
+  }
+}
