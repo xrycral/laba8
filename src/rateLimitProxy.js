@@ -6,20 +6,26 @@ class RateLimitProxy {
     this._requests = [];
   }
 
-  async request(req) {
-    const now = Date.now();
-
+  _cleanup(now) {
     this._requests = this._requests.filter(
       (time) => now - time < this._windowMs
     );
+  }
+
+  async request(req) {
+    const now = Date.now();
+
+    this._cleanup(now);
 
     if (this._requests.length >= this._maxRequests) {
-      throw new Error(
-        `[RateLimitProxy] rate limit exceeded: ${this._maxRequests} requests per ${this._windowMs}ms`
-      );
+      const oldest = this._requests[0];
+      const waitMs = this._windowMs - (now - oldest);
+      console.warn(`[RateLimitProxy] limit reached, waiting ${waitMs}ms...`);
+      await new Promise((resolve) => setTimeout(resolve, waitMs));
+      this._cleanup(Date.now());
     }
 
-    this._requests.push(now);
+    this._requests.push(Date.now());
     return this._client.request(req);
   }
 }
